@@ -144,7 +144,7 @@ usersRouter.put("/:id/check-inactive", async (req, res) => {
   try {
       const orders = await pool.query('SELECT * FROM orders WHERE user_id=$1;', [userId]);
       if (orders.rows.length === 0) {
-          const { rows } = await pool.query('UPDATE users SET active=false WHERE id=$1 RETURNING *;', [id]);
+          const { rows } = await pool.query('UPDATE users SET active=false WHERE id=$1 RETURNING *;', [userId]);
           res.json(rows[0]);
       } else {
           res.status(400).json({ message: "User has orders, cannot set to inactive" });

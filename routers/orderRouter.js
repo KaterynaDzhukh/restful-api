@@ -1,8 +1,16 @@
 import pg from 'pg';
 import express from 'express'
-const {Pool} = pg;
+import pool from '../pool.js';
 const orderRouter = express.Router();
+import {body, validationResult} from "express-validator"
 
+
+
+// ORDER VALIDATION for both POST and PUT method
+const orderValidation = [
+    body("price").isInt().exists().withMessage("Only whole number accepted"),
+    body("date").isString().exists().withMessage("Only string accepted")
+]
 
 // GET all orders
 orderRouter.get('/orders', (req, res, next) => {
@@ -29,8 +37,14 @@ orderRouter.get('/orders', (req, res, next) => {
   });
   
   // POST - Create a new order
-  orderRouter.post('/orders', (req, res, next) => {
+  orderRouter.post('/orders', orderValidation, (req, res, next) => {
     const { price, date, user_id } = req.body;
+    const errors = validationResult(req)
+
+    if(!errors.isEmpty()) {
+      return res.status(404).json({"UNSUCCESSFUL - Order not created": errors.array()})
+  }
+
   
     if (!price || !date || !user_id) {
       return res.status(400).json({ error: 'All fields are required' });
@@ -49,9 +63,15 @@ orderRouter.get('/orders', (req, res, next) => {
   });
   
   // PUT - Edit one order by ID
-  orderRouter.put('/orders/:id', (req, res, next) => {
+  orderRouter.put('/orders/:id', orderValidation, (req, res, next) => {
     const orderId = req.params.id;
     const { price, date, user_id } = req.body;
+    const errors = validationResult(req)
+
+    if(!errors.isEmpty()) {
+      return res.status(404).json({"UNSUCCESSFUL - Order not updated": errors.array()})
+  }
+
   
     if (!price || !date || !user_id) {
       return res.status(400).json({ error: 'All fields are required' });
